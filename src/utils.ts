@@ -148,3 +148,43 @@ export function resizeImage(base64: string, maxWidth = 800): Promise<string> {
     img.src = base64;
   });
 }
+
+// ---- Calendar Integration ----
+export function downloadICS(task: Task) {
+  const startDate = task.reminder ? new Date(task.reminder) : new Date(`${task.date}T08:00:00`);
+  const endDate = new Date(startDate.getTime() + 60 * 60 * 1000); // 1 hour duration
+
+  const formatICSDate = (date: Date) => {
+    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  };
+
+  const icsContent = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//Ke Hoach Tuan//VN',
+    'BEGIN:VEVENT',
+    `UID:${task.id || Date.now()}@kehoachtuan`,
+    `DTSTAMP:${formatICSDate(new Date())}`,
+    `DTSTART:${formatICSDate(startDate)}`,
+    `DTEND:${formatICSDate(endDate)}`,
+    `SUMMARY:${task.title}`,
+    `DESCRIPTION:${task.description ? task.description.replace(/\n/g, '\\n') : task.title}`,
+    'BEGIN:VALARM',
+    'TRIGGER:-PT15M',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:Reminder',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+
+  const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', `${(task.title || 'task').replace(/[^a-z0-9]/gi, '_').toLowerCase()}.ics`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}

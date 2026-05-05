@@ -75,6 +75,11 @@ export default function App() {
 
   // Check reminders every 30s
   useEffect(() => {
+    // Yêu cầu quyền thông báo nếu chưa có
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
     const check = () => {
       const now = new Date();
       const active: { id: string; title: string }[] = [];
@@ -94,7 +99,20 @@ export default function App() {
           }
         }
       });
-      if (active.length > 0) setNotifications(active);
+      
+      if (active.length > 0) {
+        setNotifications(active);
+        // Gửi thông báo native trên điện thoại
+        if ('Notification' in window && Notification.permission === 'granted') {
+          active.forEach(n => {
+            // Tránh spam thông báo cùng lúc
+            new Notification('Nhắc nhở công việc', {
+              body: n.title,
+              icon: '/favicon.png'
+            });
+          });
+        }
+      }
     };
     check();
     const interval = setInterval(check, 30000);
