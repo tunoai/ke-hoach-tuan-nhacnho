@@ -61,6 +61,26 @@ export default function TaskModal({ task, date, session, categories, onSave, onD
     onSave(saved);
   };
 
+  const getGoogleCalendarUrl = () => {
+    if (!reminder || !title.trim()) return '#';
+    const dateObj = new Date(reminder);
+    if (isNaN(dateObj.getTime())) return '#';
+    
+    // Định dạng YYYYMMDDTHHMMSSZ
+    const startStr = dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '');
+    // Mặc định sự kiện kéo dài 1 tiếng
+    const endDate = new Date(dateObj.getTime() + 60 * 60 * 1000);
+    const endStr = endDate.toISOString().replace(/-|:|\.\d\d\d/g, '');
+    
+    const url = new URL('https://calendar.google.com/calendar/render');
+    url.searchParams.append('action', 'TEMPLATE');
+    url.searchParams.append('text', title.trim() || 'Nhắc nhở công việc');
+    url.searchParams.append('details', description.trim() || '');
+    url.searchParams.append('dates', `${startStr}/${endStr}`);
+    
+    return url.toString();
+  };
+
   return (
     <div className="modal-overlay" onClick={() => { if (!title.trim()) onClose(); }}>
       <div className="modal" onClick={e => e.stopPropagation()}>
@@ -100,7 +120,20 @@ export default function TaskModal({ task, date, session, categories, onSave, onD
             </div>
             <div className="form-group">
               <label className="form-label">Nhắc nhở</label>
-              <input type="datetime-local" value={reminder} onChange={e => setReminder(e.target.value)} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input type="datetime-local" value={reminder} onChange={e => setReminder(e.target.value)} style={{ flex: 1 }} />
+                {reminder && title.trim() && (
+                  <button 
+                    type="button"
+                    className="btn btn-ghost" 
+                    onClick={() => window.open(getGoogleCalendarUrl(), '_blank')}
+                    title="Thêm vào Google Calendar"
+                    style={{ padding: '0 10px', display: 'flex', alignItems: 'center', gap: '4px', background: '#f3f4f6' }}
+                  >
+                    📅
+                  </button>
+                )}
+              </div>
             </div>
           </div>
           <div className="form-group">
