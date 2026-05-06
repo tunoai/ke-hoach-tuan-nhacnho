@@ -62,15 +62,36 @@ export default function TaskModal({ task, date, session, categories, onSave, onD
   };
 
   const getGoogleCalendarUrl = () => {
-    if (!reminder || !title.trim()) return '#';
-    const dateObj = new Date(reminder);
+    if (!title.trim()) return '#';
+    
+    let dateObj;
+    let isAllDay = false;
+    
+    if (reminder) {
+      dateObj = new Date(reminder);
+    } else if (taskDate) {
+      dateObj = new Date(taskDate);
+      isAllDay = true;
+    } else {
+      dateObj = new Date();
+    }
+    
     if (isNaN(dateObj.getTime())) return '#';
     
-    // Định dạng YYYYMMDDTHHMMSSZ
-    const startStr = dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '');
-    // Mặc định sự kiện kéo dài 1 tiếng
-    const endDate = new Date(dateObj.getTime() + 60 * 60 * 1000);
-    const endStr = endDate.toISOString().replace(/-|:|\.\d\d\d/g, '');
+    let startStr, endStr;
+    
+    if (isAllDay) {
+      // All day event: YYYYMMDD
+      startStr = taskDate.replace(/-/g, '');
+      const nextDay = new Date(dateObj);
+      nextDay.setDate(nextDay.getDate() + 1);
+      endStr = nextDay.toISOString().split('T')[0].replace(/-/g, '');
+    } else {
+      // Specific time: YYYYMMDDTHHMMSSZ
+      startStr = dateObj.toISOString().replace(/-|:|\.\d\d\d/g, '');
+      const endDate = new Date(dateObj.getTime() + 60 * 60 * 1000);
+      endStr = endDate.toISOString().replace(/-|:|\.\d\d\d/g, '');
+    }
     
     const url = new URL('https://calendar.google.com/calendar/render');
     url.searchParams.append('action', 'TEMPLATE');
@@ -122,7 +143,7 @@ export default function TaskModal({ task, date, session, categories, onSave, onD
               <label className="form-label">Nhắc nhở</label>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input type="datetime-local" value={reminder} onChange={e => setReminder(e.target.value)} style={{ flex: 1 }} />
-                {reminder && title.trim() && (
+                {title.trim() && (
                   <button 
                     type="button"
                     className="btn btn-ghost" 
