@@ -53,18 +53,26 @@ export default function App() {
   // Notifications
   const [notifications, setNotifications] = useState<{ id: string; title: string }[]>([]);
 
-  // Firebase Sync
+  // Firebase Sync (fallback to localStorage if Firebase unavailable)
   useEffect(() => {
-    const unsubTasks = subscribeToTasks(setTasks);
-    const unsubIdeas = subscribeToIdeas(setIdeas);
-    const unsubCategories = subscribeToCategories((cats) => {
-      if (cats.length > 0) setCategories(cats);
-    });
+    let unsubTasks: (() => void) | null = null;
+    let unsubIdeas: (() => void) | null = null;
+    let unsubCategories: (() => void) | null = null;
+
+    try {
+      unsubTasks = subscribeToTasks(setTasks);
+      unsubIdeas = subscribeToIdeas(setIdeas);
+      unsubCategories = subscribeToCategories((cats) => {
+        if (cats.length > 0) setCategories(cats);
+      });
+    } catch (e) {
+      console.warn('Firebase unavailable, using local data:', e);
+    }
 
     return () => {
-      unsubTasks();
-      unsubIdeas();
-      unsubCategories();
+      unsubTasks?.();
+      unsubIdeas?.();
+      unsubCategories?.();
     };
   }, []);
 
@@ -75,11 +83,6 @@ export default function App() {
 
   // Check reminders every 30s
   useEffect(() => {
-    // Yêu cầu quyền thông báo nếu chưa có
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-
     const check = () => {
       const now = new Date();
       const active: { id: string; title: string }[] = [];
@@ -99,20 +102,7 @@ export default function App() {
           }
         }
       });
-      
-      if (active.length > 0) {
-        setNotifications(active);
-        // Gửi thông báo native trên điện thoại
-        if ('Notification' in window && Notification.permission === 'granted') {
-          active.forEach(n => {
-            // Tránh spam thông báo cùng lúc
-            new Notification('Nhắc nhở công việc', {
-              body: n.title,
-              icon: '/favicon.png'
-            });
-          });
-        }
-      }
+      if (active.length > 0) setNotifications(active);
     };
     check();
     const interval = setInterval(check, 30000);

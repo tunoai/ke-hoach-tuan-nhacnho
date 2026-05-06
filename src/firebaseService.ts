@@ -20,6 +20,8 @@ export const subscribeToTasks = (callback: (tasks: Task[]) => void) => {
   return onSnapshot(q, (snapshot) => {
     const tasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
     callback(tasks);
+  }, (error) => {
+    console.warn("Firebase tasks subscription error:", error);
   });
 };
 
@@ -37,6 +39,8 @@ export const subscribeToIdeas = (callback: (ideas: IdeaNote[]) => void) => {
   return onSnapshot(q, (snapshot) => {
     const ideas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as IdeaNote));
     callback(ideas);
+  }, (error) => {
+    console.warn("Firebase ideas subscription error:", error);
   });
 };
 
@@ -53,6 +57,8 @@ export const subscribeToCategories = (callback: (categories: Category[]) => void
   return onSnapshot(collection(db, CATEGORIES_COLLECTION), (snapshot) => {
     const categories = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Category));
     callback(categories);
+  }, (error) => {
+    console.warn("Firebase categories subscription error:", error);
   });
 };
 

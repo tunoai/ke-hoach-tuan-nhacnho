@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
 import type { Task, Category, Session } from './types';
 import { SESSIONS, TASK_COLORS } from './types';
-import { generateId, downloadICS } from './utils';
+import { generateId } from './utils';
 
 interface Props {
   task: Task | null;
@@ -99,14 +99,7 @@ export default function TaskModal({ task, date, session, categories, onSave, onD
               </select>
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                Nhắc nhở
-                {task && (
-                  <button type="button" onClick={() => downloadICS(task)} className="btn btn-ghost btn-sm" style={{ padding: '2px 6px', fontSize: '11px', height: 'auto', background: 'var(--bg-hover)' }}>
-                    + Thêm vào lịch điện thoại
-                  </button>
-                )}
-              </label>
+              <label className="form-label">Nhắc nhở</label>
               <input type="datetime-local" value={reminder} onChange={e => setReminder(e.target.value)} />
             </div>
           </div>

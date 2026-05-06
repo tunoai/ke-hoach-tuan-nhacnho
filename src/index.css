@@ -66,7 +66,12 @@ input:focus, textarea:focus, select:focus {
   outline: none; border-color: var(--accent); background: var(--surface-lowest);
   box-shadow: 0 0 0 4px rgba(70, 72, 212, 0.08);
 }
-textarea { resize: vertical; min-height: 72px; }
+textarea {
+  resize: vertical;
+  min-height: 140px;
+  max-height: 400px;
+  line-height: 1.6;
+}
 
 /* ===== LAYOUT ===== */
 .app-layout { display: flex; height: 100vh; overflow: hidden; }
